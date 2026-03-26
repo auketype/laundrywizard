@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<!--This website is designed to be used by residents of my local apartment complex.
+The washers and dryers are notoriously terrible. The idea behind this is a community
+driven resource center, where people can leave status updates and comments of the 
+machines in the wash room.-->
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<script>
+    function setStatus(machineId, newStatus) {
+    var box = document.getElementById(machineId);
+    box.classList.remove('status-ok', 'status-warn', 'status-broke');
+    box.classList.add(newStatus);
+}
+
+function toggleLanguage() {
+    var english = document.querySelectorAll('.en');
+    var spanish = document.querySelectorAll('.es');
+
+    english.forEach(function(el) { el.classList.toggle('hidden'); });
+    spanish.forEach(function(el) { el.classList.toggle('hidden'); });
+}
+
+var JSONBIN_ACCESS_KEY = '$2a$10$1fQqd./9fRujZ.ptbnysbuGJlIfgmvrxj02pCWmTleoR1Y5HYgOD.';
+var BIN_ID = '69c48c43b7ec241ddca3ab2c';
+
+function loadStatuses() {
+    fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', {
+        headers: { 'X-Access-Key': JSONBIN_ACCESS_KEY }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(json) {
+        var statuses = json.record;
+        for (var machineId in statuses) {
+            var box = document.getElementById(machineId);
+            if (box) {
+                box.classList.remove('status-ok', 'status-warn', 'status-broke');
+                box.classList.add(statuses[machineId]);
+            }
+        }
+    });
+}
+
+window.onload = loadStatuses;
+
+function setStatus(machineId, newStatus) {
+    var box = document.getElementById(machineId);
+    box.classList.remove('status-ok', 'status-warn', 'status-broke');
+    box.classList.add(newStatus);
+
+    fetch('https://api.jsonbin.io/v3/b/' + BIN_ID + '/latest', {
+        headers: { 'X-Access-Key': JSONBIN_ACCESS_KEY }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+        var statuses = json.record;
+        statuses[machineId] = newStatus;
+        return fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Access-Key': JSONBIN_ACCESS_KEY
+            },
+            body: JSON.stringify(statuses)
+        });
+    });
+}
+
+</script>
+
+<style>
+
+    body {
+        color: aquamarine;
+        font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        background: linear-gradient(180deg, rgb(0, 0, 0), rgb(2, 85, 105));
+        margin: 0;
+        padding: 0;
+    }
+    #titleBar {
+        position: sticky; top: 0px;
+        height: fit-content;
+        width: 100%;
+        border-bottom: 2px dashed white;
+        text-align: center;
+        background: black ;
+    }
+
+    #titleBar h1 {
+        margin: 0;
+        padding: 10px 0;
+    }
+
+    #utilBoxWasherSection {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        max-width: 90%;
+        margin: 0 auto;
+        margin-bottom: 10%;
+        margin-top: 5%;
+    }
+
+    #utilBoxDryerSection {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        max-width: 90%;
+        margin: 0 auto;
+        margin-bottom: 5%;
+        margin-top: 5%;
+    }
+
+    .utilHeader {
+        text-align: center;
+        margin: 0;
+        max-height: 1em;
+        border-bottom: 2px solid aquamarine;
+    }
+
+    h1 {
+        font-size: 1.5em;
+        text-align: center;
+    }
+
+    h3 {
+        font-size: 1em;
+        padding-top: .2em;
+        padding-bottom: .2em;
+    }
+
+    #intro {
+        position: static;
+        padding-top: 1%;
+        padding-left: 5%;
+        padding-right: 5%;
+        text-align: center;
+        color: white;
+    }
+
+    ul {
+        list-style: none;
+        text-align: center;
+        color: white;
+    }
+
+    hr {
+        color: white;
+    }
+
+
+    .status-ok {
+        min-height: 200px;
+        border: 1px solid aqua;
+        width: 80%;
+        display: grid;
+        border-radius: 20px;
+        background: rgba(4, 219, 40, 0.4)
+    }
+
+    .status-warn {
+        min-height: 200px;
+        border: 1px solid aqua;
+        width: 80%;
+        display: grid;
+        border-radius: 20px;
+        background: rgba(238, 255, 0, 0.4)
+    }
+
+    .status-broke {
+        min-height: 200px;
+        border: 1px solid aqua;
+        width: 80%;
+        display: grid;
+        border-radius: 20px;
+        background: rgba(219, 4, 4, 0.4)
+    }
+
+    .statusBtns {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        font-size: 1em;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    a {
+        color: aquamarine;
+    }
+
+    p {
+        text-align: center;
+        color: white;
+        margin: 20px;
+    }
+
+    .hidden {
+        display: none;
+    }
+    
+    button {
+        position: absolute;
+        right: 0px;
+        margin-right: 20px;
+        padding: 6px;
+    }
+
+</style> 
+
+
+</head>
+
+
+
+<body>
+
+<div id="titleBar">
+    <h1 class="en">Laundry Status! <button onclick="toggleLanguage()">EN/ES</button></h1>
+    <h1 class="es hidden">¡Estado de la lavandería! <button onclick="toggleLanguage()">EN/ES</button></h1>
+</div>
+
+
+<div id="intro">
+<p class="en">Hello! This website is to be used by local residents only, to update others on the status of washers and dryers! Do your part, and update your experience on here so others know 
+    which machines work and which don't! Yes, this INCLUDES when they DO work!
+</p>
+<p class="es hidden">¡Hola! Este sitio web está destinado exclusivamente a los residentes locales para informar a los demás sobre el estado de las lavadoras y secadoras. 
+    ¡Haz tu parte y comparte tu experiencia aquí para que los demás sepan qué máquinas funcionan y cuáles no! Sí, ¡esto INCLUYE también cuando SÍ funcionan!
+</p>
+</div>
+<hr>
+
+<p class="en">✅ means good to go! Works as expected!</p>
+<p class="es hidden">✅ ¡Significa que está listo! ¡Funciona tal como se esperaba!</p>
+
+<p class="en">⚠️ means mostly works! Takes multiple cycles to fully dry, or has slight issues with spin cycles, etc!</p>
+<p class="es hidden">⚠️ ¡Significa que, en su mayor parte, funciona! Requiere varios ciclos para secar por completo, o presenta ligeros problemas con los ciclos de centrifugado, ¡etc.!</p>
+
+<p class="en">❌ means OUT OF SERVICE! Severe issues, not worth using.</p>
+<p class="es hidden">❌ ¡Significa FUERA DE SERVICIO! Problemas graves; no vale la pena utilizarlo.</p>
+
+
+
+
+<hr>
+
+<p class="en"><b>FULL DISCLOSURE!</b> Sometimes, machines fail due to user error. Overloading washers and dryers can affect spin cycles, as well as drying cycles. Keep this in mind. Please note that
+    all data on here is provided by residents just like you, so take everything with a grain of salt.
+</p>
+<p class="es hidden"><b>¡AVISO IMPORTANTE!</b> En ocasiones, las máquinas fallan debido a errores del usuario. Sobrecargar las lavadoras y secadoras puede afectar tanto a los ciclos de centrifugado 
+    como a los de secado. Tenga esto en cuenta. Por favor, tenga presente que toda la información aquí contenida es proporcionada por residentes como usted; por lo tanto, tómela con cierta reserva.
+</p>
+
+<hr>
+<h1 class="en">Dryers</h1>
+<h1 class="es hidden">Secadoras</h1>
+<div id="utilBoxDryerSection">
+    <div class="status-ok" id="dryer1">
+        <h3 class="utilHeader">Dryer 852-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('dryer1', 'status-ok')">✅</span>
+            <span onclick="setStatus('dryer1', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('dryer1', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="dryer2">
+        <h3 class="utilHeader">Dryer 853-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('dryer2', 'status-ok')">✅</span>
+            <span onclick="setStatus('dryer2', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('dryer2', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="dryer3">
+        <h3 class="utilHeader">Dryer 854-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('dryer3', 'status-ok')">✅</span>
+            <span onclick="setStatus('dryer3', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('dryer3', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="dryer4">
+        <h3 class="utilHeader">Dryer 855-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('dryer4', 'status-ok')">✅</span>
+            <span onclick="setStatus('dryer4', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('dryer4', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="dryer5">
+        <h3 class="utilHeader">Dryer 856-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('dryer5', 'status-ok')">✅</span>
+            <span onclick="setStatus('dryer5', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('dryer5', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="dryer6">
+        <h3 class="utilHeader">Dryer 857-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('dryer6', 'status-ok')">✅</span>
+            <span onclick="setStatus('dryer6', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('dryer6', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="dryer7">
+        <h3 class="utilHeader">Dryer 858-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('dryer7', 'status-ok')">✅</span>
+            <span onclick="setStatus('dryer7', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('dryer7', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+</div>
+<hr>
+<h1 class="en">Washers</h1>
+<h1 class="es hidden">Lavadoras</h1>
+<div id="utilBoxWasherSection">
+    <div class="status-ok" id="washer1">
+        <h3 class="utilHeader">Washer 848-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('washer1', 'status-ok')">✅</span>
+            <span onclick="setStatus('washer1', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('washer1', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="washer2">
+        <h3 class="utilHeader">Washer 846-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('washer2', 'status-ok')">✅</span>
+            <span onclick="setStatus('washer2', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('washer2', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="washer3">
+        <h3 class="utilHeader">Washer 850-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('washer3', 'status-ok')">✅</span>
+            <span onclick="setStatus('washer3', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('washer3', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="washer4">
+        <h3 class="utilHeader">Washer 849-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('washer4', 'status-ok')">✅</span>
+            <span onclick="setStatus('washer4', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('washer4', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="washer5">
+        <h3 class="utilHeader">Washer 847-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('washer5', 'status-ok')">✅</span>
+            <span onclick="setStatus('washer5', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('washer5', 'status-broke')">❌</span>
+        </div>
+    </div>
+
+    <div class="status-ok" id="washer6">
+        <h3 class="utilHeader">Washer 851-DBL</h3>
+        <div class="statusBtns">
+            <span onclick="setStatus('washer6', 'status-ok')">✅</span>
+            <span onclick="setStatus('washer6', 'status-warn')">⚠️</span>
+            <span onclick="setStatus('washer6', 'status-broke')">❌</span>
+        </div>
+    </div>
+</div>
+<p class="en">Questions, comments, concerns? <a href="mailto:auketype@proton.me">Email me!</a></p>
+<p class="es hidden">¿Preguntas, comentarios o inquietudes?<a href="mailto:auketype@proton.me">¡Envíame un correo!</a></p>
+
+<p class="en">I am NOT AFFILIATED with the company that provides the service. I am a resident, just like you!</p>
+<p class="es hidden">NO estoy afiliado a la empresa que presta el servicio. ¡Soy un residente, igual que tú!</p>
+
+<p class="en">Please DO NOT CONTACT ME asking to fix the machines.</p>
+<p class="es hidden">Por favor, NO me contacte para pedirme que repare las máquinas.</p>
+
+
+</body>
